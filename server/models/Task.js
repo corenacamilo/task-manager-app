@@ -51,16 +51,11 @@ const taskSchema = new mongoose.Schema({
   outlookMeetingUrl: String,
   
   // Task details
-  priority: {
-    type: String,
-    enum: ['low', 'medium', 'high', 'urgent'],
-    default: 'medium'
-  },
   category: {
     type: String,
     default: 'general'
   },
-  location: String,
+  personalContacto: String,
   
   // Client information (for commercial tasks)
   clientName: String,

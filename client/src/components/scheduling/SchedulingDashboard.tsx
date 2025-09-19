@@ -14,27 +14,50 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
   const navigate = useNavigate();
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 10
+  });
   const [filter, setFilter] = useState({
     status: '',
-    priority: '',
     startDate: '',
     endDate: ''
   });
 
   useEffect(() => {
     loadTasks();
-  }, [filter]);
+  }, [filter, pagination.currentPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, [filter.status, filter.startDate, filter.endDate]);
 
   const loadTasks = async () => {
     try {
       setLoading(true);
-      const response = await tasksAPI.getTasks(filter);
+      const response = await tasksAPI.getTasks({
+        page: pagination.currentPage,
+        limit: pagination.limit,
+        ...filter
+      });
       setTasks(response.data.tasks);
+      setPagination(prev => ({
+        ...prev,
+        totalPages: response.data.totalPages || 1,
+        total: response.data.total || 0
+      }));
     } catch (error) {
       console.error('Error loading tasks:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, currentPage: newPage }));
   };
 
   const handleExportToExcel = async () => {
@@ -69,15 +92,6 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'urgent': return 'text-red-600 bg-red-100';
-      case 'high': return 'text-orange-600 bg-orange-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
 
   const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('es-ES', {
@@ -133,7 +147,7 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
               <div>
                 <label className="block text-sm font-medium mb-1">Estado</label>
                 <select 
@@ -146,21 +160,6 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
                   <option value="scheduled">Agendada</option>
                   <option value="completed">Completada</option>
                   <option value="cancelled">Cancelada</option>
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium mb-1">Prioridad</label>
-                <select 
-                  className="w-full p-2 border rounded-md focus:ring-2 focus:ring-primary-500 focus:border-primary-500"
-                  value={filter.priority}
-                  onChange={(e) => setFilter({...filter, priority: e.target.value})}
-                >
-                  <option value="">Todas</option>
-                  <option value="low">Baja</option>
-                  <option value="medium">Media</option>
-                  <option value="high">Alta</option>
-                  <option value="urgent">Urgente</option>
                 </select>
               </div>
 
@@ -221,7 +220,7 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="border-b bg-gray-50">
-                      <th className="text-left p-3 font-semibold">Título</th>
+                      <th className="text-left p-3 font-semibold">Motivo Visita</th>
                       {user.role === 'admin' && (
                         <th className="text-left p-3 font-semibold">Asignado a</th>
                       )}
@@ -229,9 +228,8 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
                       <th className="text-left p-3 font-semibold">Hora</th>
                       <th className="text-left p-3 font-semibold">Duración</th>
                       <th className="text-left p-3 font-semibold">Estado</th>
-                      <th className="text-left p-3 font-semibold">Prioridad</th>
                       <th className="text-left p-3 font-semibold">Cliente</th>
-                      <th className="text-left p-3 font-semibold">Ubicación</th>
+                      <th className="text-left p-3 font-semibold">Personal Contacto</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -281,14 +279,6 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
                           </span>
                         </td>
                         <td className="p-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {task.priority === 'low' && 'Baja'}
-                            {task.priority === 'medium' && 'Media'}
-                            {task.priority === 'high' && 'Alta'}
-                            {task.priority === 'urgent' && 'Urgente'}
-                          </span>
-                        </td>
-                        <td className="p-3">
                           {task.clientName ? (
                             <div className="text-sm">
                               <div className="font-medium">{task.clientName}</div>
@@ -301,19 +291,79 @@ const SchedulingDashboard: React.FC<SchedulingDashboardProps> = ({ user }) => {
                           )}
                         </td>
                         <td className="p-3">
-                          {task.location ? (
+                          {task.personalContacto ? (
                             <div className="flex items-center space-x-2">
                               <MapPin className="w-4 h-4 text-gray-400" />
-                              <span className="text-sm">{task.location}</span>
+                              <span className="text-sm">{task.personalContacto}</span>
                             </div>
                           ) : (
-                            <span className="text-gray-400 text-sm">Sin ubicación</span>
+                            <span className="text-gray-400 text-sm">Sin personal contacto</span>
                           )}
                         </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
+
+                {/* Pagination */}
+                {pagination.totalPages > 1 && (
+                  <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50 mt-4">
+                    <div className="flex items-center text-sm text-gray-700">
+                      <span>
+                        Mostrando {((pagination.currentPage - 1) * pagination.limit) + 1} a{' '}
+                        {Math.min(pagination.currentPage * pagination.limit, pagination.total)} de{' '}
+                        {pagination.total} resultados
+                      </span>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                        disabled={pagination.currentPage === 1}
+                      >
+                        Anterior
+                      </Button>
+                      
+                      {/* Page numbers */}
+                      <div className="flex items-center space-x-1">
+                        {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                          let pageNum: number;
+                          if (pagination.totalPages <= 5) {
+                            pageNum = i + 1;
+                          } else if (pagination.currentPage <= 3) {
+                            pageNum = i + 1;
+                          } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                            pageNum = pagination.totalPages - 4 + i;
+                          } else {
+                            pageNum = pagination.currentPage - 2 + i;
+                          }
+                          
+                          return (
+                            <Button
+                              key={pageNum}
+                              variant={pagination.currentPage === pageNum ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(pageNum)}
+                              className="w-8 h-8 p-0"
+                            >
+                              {pageNum}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                        disabled={pagination.currentPage === pagination.totalPages}
+                      >
+                        Siguiente
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

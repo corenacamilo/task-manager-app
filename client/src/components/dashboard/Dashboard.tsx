@@ -18,23 +18,34 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
   const [loading, setLoading] = useState(true);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
+    totalPages: 1,
+    total: 0,
+    limit: 10
+  });
   const [filter, setFilter] = useState({
     status: '',
-    priority: '',
     startDate: '',
     endDate: ''
   });
 
   useEffect(() => {
     loadDashboardData();
-  }, [filter]);
+  }, [filter, pagination.currentPage]);
+
+  // Reset to first page when filters change
+  useEffect(() => {
+    setPagination(prev => ({ ...prev, currentPage: 1 }));
+  }, [filter.status, filter.startDate, filter.endDate]);
 
   const loadDashboardData = async () => {
     try {
       setLoading(true);
       const [tasksResponse, statsResponse] = await Promise.all([
         tasksAPI.getTasks({ 
-          limit: 10,
+          page: pagination.currentPage,
+          limit: pagination.limit,
           ...filter 
         }),
         tasksAPI.getTaskStats()
@@ -42,11 +53,20 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
 
       setTasks(tasksResponse.data.tasks);
       setStats(statsResponse.data);
+      setPagination(prev => ({
+        ...prev,
+        totalPages: tasksResponse.data.totalPages || 1,
+        total: tasksResponse.data.total || 0
+      }));
     } catch (error) {
       console.error('Error loading dashboard data:', error);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePageChange = (newPage: number) => {
+    setPagination(prev => ({ ...prev, currentPage: newPage }));
   };
 
   const handleExportToExcel = async () => {
@@ -138,25 +158,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'text-red-600 bg-red-100';
-      case 'medium': return 'text-yellow-600 bg-yellow-100';
-      case 'low': return 'text-green-600 bg-green-100';
-      case 'urgent': return 'text-purple-600 bg-purple-100';
-      default: return 'text-gray-600 bg-gray-100';
-    }
-  };
-
-  const getPriorityText = (priority: string) => {
-    switch (priority) {
-      case 'high': return 'Alta';
-      case 'medium': return 'Media';
-      case 'low': return 'Baja';
-      case 'urgent': return 'Urgente';
-      default: return priority;
-    }
-  };
 
   if (loading) {
     return (
@@ -366,20 +367,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                 </select>
               </div>
 
-              <div>
-                <label className="block text-xs md:text-sm font-medium mb-1">Prioridad</label>
-                <select 
-                  className="w-full p-2 text-sm border rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  value={filter.priority}
-                  onChange={(e) => setFilter({...filter, priority: e.target.value})}
-                >
-                  <option value="">Todas</option>
-                  <option value="low">Baja</option>
-                  <option value="medium">Media</option>
-                  <option value="high">Alta</option>
-                  <option value="urgent">Urgente</option>
-                </select>
-              </div>
 
               <div>
                 <label className="block text-xs md:text-sm font-medium mb-1">Fecha Inicio</label>
@@ -465,14 +452,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                         </div>
                       </div>
                       <div>
-                        <span className="text-gray-500">Prioridad:</span>
-                        <div className="mt-1">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                            {getPriorityText(task.priority)}
-                          </span>
-                        </div>
-                      </div>
-                      <div>
                         <span className="text-gray-500">Programación:</span>
                         <div className="mt-1 text-xs">
                           {task.scheduledDate ? (
@@ -516,7 +495,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                     <th className="text-left p-3 lg:p-4 font-semibold">Tarea</th>
                     <th className="text-left p-3 lg:p-4 font-semibold">Programación</th>
                     <th className="text-left p-3 lg:p-4 font-semibold">Estado</th>
-                    <th className="text-left p-3 lg:p-4 font-semibold">Prioridad</th>
                     <th className="text-left p-3 lg:p-4 font-semibold">Cliente</th>
                     <th className="text-left p-3 lg:p-4 font-semibold">Acciones</th>
                   </tr>
@@ -549,11 +527,6 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                       <td className="p-3 lg:p-4">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(task.status)}`}>
                           {getStatusText(task.status)}
-                        </span>
-                      </td>
-                      <td className="p-3 lg:p-4">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getPriorityColor(task.priority)}`}>
-                          {getPriorityText(task.priority)}
                         </span>
                       </td>
                       <td className="p-3 lg:p-4 text-sm text-gray-600">
@@ -591,6 +564,66 @@ const Dashboard: React.FC<DashboardProps> = ({ user }) => {
                   <Calendar className="w-16 h-16 text-gray-300 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No hay tareas</h3>
                   <p>No se encontraron tareas que coincidan con los filtros.</p>
+                </div>
+              )}
+
+              {/* Pagination */}
+              {pagination.totalPages > 1 && (
+                <div className="flex items-center justify-between px-4 py-3 border-t bg-gray-50">
+                  <div className="flex items-center text-sm text-gray-700">
+                    <span>
+                      Mostrando {((pagination.currentPage - 1) * pagination.limit) + 1} a{' '}
+                      {Math.min(pagination.currentPage * pagination.limit, pagination.total)} de{' '}
+                      {pagination.total} resultados
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage - 1)}
+                      disabled={pagination.currentPage === 1}
+                    >
+                      Anterior
+                    </Button>
+                    
+                    {/* Page numbers */}
+                    <div className="flex items-center space-x-1">
+                      {Array.from({ length: Math.min(5, pagination.totalPages) }, (_, i) => {
+                        let pageNum: number;
+                        if (pagination.totalPages <= 5) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage <= 3) {
+                          pageNum = i + 1;
+                        } else if (pagination.currentPage >= pagination.totalPages - 2) {
+                          pageNum = pagination.totalPages - 4 + i;
+                        } else {
+                          pageNum = pagination.currentPage - 2 + i;
+                        }
+                        
+                        return (
+                          <Button
+                            key={pageNum}
+                            variant={pagination.currentPage === pageNum ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => handlePageChange(pageNum)}
+                            className="w-8 h-8 p-0"
+                          >
+                            {pageNum}
+                          </Button>
+                        );
+                      })}
+                    </div>
+                    
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handlePageChange(pagination.currentPage + 1)}
+                      disabled={pagination.currentPage === pagination.totalPages}
+                    >
+                      Siguiente
+                    </Button>
+                  </div>
                 </div>
               )}
             </div>

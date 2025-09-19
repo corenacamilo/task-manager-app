@@ -62,8 +62,8 @@ async function createOutlookEvent(task, userAccessToken = null) {
   };
 
   // Add optional fields only if they exist
-  if (task.location) {
-    eventData.location = { displayName: task.location };
+  if (task.personalContacto) {
+    eventData.location = { displayName: task.personalContacto };
   }
 
   if (task.clientEmail && task.clientName) {
@@ -126,9 +126,8 @@ router.post('/', authenticateToken, async (req, res) => {
       scheduledTime,
       duration = 60,
       assignedTo,
-      priority = 'medium',
       category = 'general',
-      location,
+      personalContacto,
       clientName,
       clientEmail,
       clientPhone,
@@ -164,9 +163,8 @@ router.post('/', authenticateToken, async (req, res) => {
       duration,
       assignedTo: finalAssignedTo,
       createdBy: req.user._id,
-      priority,
       category,
-      location,
+      personalContacto,
       clientName,
       clientEmail,
       clientPhone
@@ -227,9 +225,8 @@ router.post('/:id/schedule', authenticateToken, async (req, res) => {
         content: `
           <h3>Task Details</h3>
           <p><strong>Description:</strong> ${task.description || 'No description'}</p>
-          <p><strong>Priority:</strong> ${task.priority}</p>
           <p><strong>Category:</strong> ${task.category}</p>
-          ${task.location ? `<p><strong>Location:</strong> ${task.location}</p>` : ''}
+          ${task.personalContacto ? `<p><strong>Personal Contacto:</strong> ${task.personalContacto}</p>` : ''}
           ${task.clientName ? `
             <h4>Client Information</h4>
             <p><strong>Name:</strong> ${task.clientName}</p>
@@ -246,7 +243,7 @@ router.post('/:id/schedule', authenticateToken, async (req, res) => {
         dateTime: getEndDateTime(task.scheduledDate, task.scheduledTime, task.duration),
         timeZone: 'UTC'
       },
-      location: task.location ? { displayName: task.location } : undefined,
+      location: task.personalContacto ? { displayName: task.personalContacto } : undefined,
       attendees: task.clientEmail ? [{
         emailAddress: {
           address: task.clientEmail,
@@ -294,7 +291,6 @@ router.get('/', authenticateToken, async (req, res) => {
       page = 1,
       limit = 10,
       status,
-      priority,
       assignedTo,
       startDate,
       endDate,
@@ -312,7 +308,6 @@ router.get('/', authenticateToken, async (req, res) => {
 
     // Apply filters
     if (status) query.status = status;
-    if (priority) query.priority = priority;
     
     if (startDate || endDate) {
       query.scheduledDate = {};
@@ -484,9 +479,8 @@ router.get('/export/excel', authenticateToken, async (req, res) => {
       { header: 'Scheduled Time', key: 'scheduledTime', width: 15 },
       { header: 'Duration (min)', key: 'duration', width: 15 },
       { header: 'Status', key: 'status', width: 15 },
-      { header: 'Priority', key: 'priority', width: 15 },
       { header: 'Category', key: 'category', width: 15 },
-      { header: 'Location', key: 'location', width: 20 },
+      { header: 'Personal Contacto', key: 'personalContacto', width: 20 },
       { header: 'Client Name', key: 'clientName', width: 20 },
       { header: 'Client Email', key: 'clientEmail', width: 25 },
       { header: 'Client Phone', key: 'clientPhone', width: 15 },
@@ -506,9 +500,8 @@ router.get('/export/excel', authenticateToken, async (req, res) => {
         scheduledTime: task.scheduledTime,
         duration: task.duration,
         status: task.status,
-        priority: task.priority,
         category: task.category,
-        location: task.location || '',
+        personalContacto: task.personalContacto || '',
         clientName: task.clientName || '',
         clientEmail: task.clientEmail || '',
         clientPhone: task.clientPhone || '',
@@ -555,9 +548,6 @@ router.get('/stats/overview', authenticateToken, async (req, res) => {
     const completedTasks = await Task.countDocuments({ ...query, status: 'completed' });
     const cancelledTasks = await Task.countDocuments({ ...query, status: 'cancelled' });
 
-    // Tasks by priority
-    const highPriorityTasks = await Task.countDocuments({ ...query, priority: 'high' });
-    const urgentTasks = await Task.countDocuments({ ...query, priority: 'urgent' });
 
     // Today's tasks
     const today = new Date();
@@ -576,8 +566,6 @@ router.get('/stats/overview', authenticateToken, async (req, res) => {
       scheduledTasks,
       completedTasks,
       cancelledTasks,
-      highPriorityTasks,
-      urgentTasks,
       todaysTasks
     });
   } catch (error) {

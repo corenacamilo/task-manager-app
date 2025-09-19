@@ -3,7 +3,7 @@ import { Task, User } from '../../types';
 import { tasksAPI, usersAPI } from '../../services/api';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
 import { Button } from '../ui/button';
-import { X, Save, Calendar, Clock, MapPin, User as UserIcon, Tag, AlertCircle } from 'lucide-react';
+import { X, Save, Calendar, Clock, MapPin, User as UserIcon, AlertCircle } from 'lucide-react';
 
 interface EditTaskModalProps {
   task: Task;
@@ -25,9 +25,8 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
     description: task.description,
     scheduledDate: task.scheduledDate ? new Date(task.scheduledDate).toISOString().slice(0, 16) : '',
     duration: task.duration || 60,
-    priority: task.priority,
     category: task.category || '',
-    location: task.location || '',
+    personalContacto: task.personalContacto || '',
     clientName: task.clientName || '',
     clientEmail: task.clientEmail || '',
     assignedTo: task.assignedTo,
@@ -180,53 +179,34 @@ const EditTaskModal: React.FC<EditTaskModalProps> = ({
                 </div>
               </div>
 
-              {/* Priority and Category */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    <Tag className="w-4 h-4 inline mr-1" />
-                    Prioridad
-                  </label>
-                  <select
-                    name="priority"
-                    value={formData.priority}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  >
-                    <option value="low">Baja</option>
-                    <option value="medium">Media</option>
-                    <option value="high">Alta</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Categoría
-                  </label>
-                  <input
-                    type="text"
-                    name="category"
-                    value={formData.category}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    placeholder="Categoría de la tarea"
-                  />
-                </div>
-              </div>
-
-              {/* Location */}
+              {/* Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  <MapPin className="w-4 h-4 inline mr-1" />
-                  Ubicación
+                  Categoría
                 </label>
                 <input
                   type="text"
-                  name="location"
-                  value={formData.location}
+                  name="category"
+                  value={formData.category}
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Ubicación de la tarea"
+                  placeholder="Categoría de la tarea"
+                />
+              </div>
+
+              {/* Personal Contacto */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  <MapPin className="w-4 h-4 inline mr-1" />
+                  Personal Contacto
+                </label>
+                <input
+                  type="text"
+                  name="personalContacto"
+                  value={formData.personalContacto}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  placeholder="Nombre del personal de contacto"
                 />
               </div>
 

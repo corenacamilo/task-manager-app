@@ -4,7 +4,7 @@ import { loginRequest } from '../../config/authConfig';
 import { authAPI } from '../../services/api';
 import { Button } from '../ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '../ui/card';
-import { LogIn, Calendar, Users, BarChart3 } from 'lucide-react';
+import { LogIn, Users, BarChart3 } from 'lucide-react';
 
 interface LoginPageProps {
   onLoginSuccess: (token: string, user: any, accessToken: string) => void;
@@ -39,12 +39,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
       <div className="w-full max-w-md">
         <Card className="shadow-2xl border-0">
           <CardHeader className="text-center space-y-4 pb-8">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full flex items-center justify-center shadow-lg">
-              <Calendar className="w-10 h-10 text-white" />
+            <div className="mx-auto w-20 h-20 bg-gradient-to-r from-primary-600 to-primary-700 rounded-full flex items-center justify-center shadow-lg overflow-hidden">
+              <img 
+                src="/e.png" 
+                alt="Logo" 
+                className="w-12 h-12 object-contain"
+              />
             </div>
-            <CardTitle className="text-3xl font-bold text-gray-900">Task Manager</CardTitle>
+            <CardTitle className="text-3xl font-bold text-gray-900">Agendamiento de Visitas</CardTitle>
             <CardDescription className="text-gray-600 text-base">
-              Gestiona tus tareas y agenda con integración de Outlook
+              Gestiona tu agenda comercial
             </CardDescription>
           </CardHeader>
           
@@ -85,8 +89,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLoginSuccess }) => {
               
               <div className="grid grid-cols-1 gap-3">
                 <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 hover:shadow-md transition-shadow duration-200">
-                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center">
-                    <Calendar className="w-5 h-5 text-primary-600" />
+                  <div className="w-10 h-10 bg-primary-100 rounded-lg flex items-center justify-center overflow-hidden">
+                    <img 
+                      src="/e.png" 
+                      alt="Logo" 
+                      className="w-6 h-6 object-contain"
+                    />
                   </div>
                   <div>
                     <p className="text-sm font-semibold text-gray-900">Integración con Outlook</p>

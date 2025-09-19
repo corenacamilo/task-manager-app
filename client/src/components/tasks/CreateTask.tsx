@@ -21,9 +21,8 @@ const CreateTask: React.FC<CreateTaskProps> = ({ user }) => {
     scheduledTime: '',
     duration: 60,
     assignedTo: user.role === 'commercial' ? user.id : '',
-    priority: 'medium',
     category: 'general',
-    location: '',
+    personalContacto: '',
     clientName: '',
     clientEmail: '',
     clientPhone: ''
@@ -111,7 +110,7 @@ const CreateTask: React.FC<CreateTaskProps> = ({ user }) => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Título *
+                    Motivo Visita *
                   </label>
                   <input
                     type="text"
@@ -202,57 +201,38 @@ const CreateTask: React.FC<CreateTaskProps> = ({ user }) => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {user.role === 'admin' && (
                 <div>
                   <label className="block text-sm font-semibold text-gray-700 mb-2">
-                    Prioridad
+                    Asignar a
                   </label>
                   <select
-                    name="priority"
-                    value={formData.priority}
+                    name="assignedTo"
+                    value={formData.assignedTo}
                     onChange={handleInputChange}
                     className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
                   >
-                    <option value="low">Baja</option>
-                    <option value="medium">Media</option>
-                    <option value="high">Alta</option>
-                    <option value="urgent">Urgente</option>
+                    <option value="">Seleccionar usuario</option>
+                    {users.map(user => (
+                      <option key={user.id} value={user.id}>
+                        {user.name} - {user.email}
+                      </option>
+                    ))}
                   </select>
                 </div>
-
-                {user.role === 'admin' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-gray-700 mb-2">
-                      Asignar a
-                    </label>
-                    <select
-                      name="assignedTo"
-                      value={formData.assignedTo}
-                      onChange={handleInputChange}
-                      className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                    >
-                      <option value="">Seleccionar usuario</option>
-                      {users.map(user => (
-                        <option key={user.id} value={user.id}>
-                          {user.name} - {user.email}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-              </div>
+              )}
 
               <div>
                 <label className="block text-sm font-semibold text-gray-700 mb-2">
-                  Ubicación
+                  Personal Contacto
                 </label>
                 <input
                   type="text"
-                  name="location"
-                  value={formData.location}
+                  name="personalContacto"
+                  value={formData.personalContacto}
                   onChange={handleInputChange}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-primary-500 transition-colors"
-                  placeholder="Dirección o ubicación de la tarea"
+                  placeholder="Nombre del personal de contacto"
                 />
               </div>
             </CardContent>

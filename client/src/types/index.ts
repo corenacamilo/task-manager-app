@@ -21,9 +21,8 @@ export interface Task {
   assignedTo: User;
   createdBy: User;
   status: 'pending' | 'scheduled' | 'completed' | 'cancelled';
-  priority: 'low' | 'medium' | 'high' | 'urgent';
   category: string;
-  location?: string;
+  personalContacto?: string;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;
@@ -46,8 +45,6 @@ export interface TaskStats {
   scheduledTasks: number;
   completedTasks: number;
   cancelledTasks: number;
-  highPriorityTasks: number;
-  urgentTasks: number;
   todaysTasks: number;
 }
 
@@ -66,9 +63,8 @@ export interface CreateTaskRequest {
   scheduledTime: string;
   duration?: number;
   assignedTo?: string;
-  priority?: 'low' | 'medium' | 'high' | 'urgent';
   category?: string;
-  location?: string;
+  personalContacto?: string;
   clientName?: string;
   clientEmail?: string;
   clientPhone?: string;

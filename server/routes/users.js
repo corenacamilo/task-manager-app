@@ -29,8 +29,14 @@ router.get('/', authenticateToken, requireAdmin, async (req, res) => {
 
     const total = await User.countDocuments(query);
 
+    // Transform _id to id for frontend compatibility
+    const transformedUsers = users.map(user => ({
+      ...user.toObject(),
+      id: user._id.toString()
+    }));
+
     res.json({
-      users,
+      users: transformedUsers,
       totalPages: Math.ceil(total / limit),
       currentPage: page,
       total
@@ -57,7 +63,13 @@ router.get('/:id', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json(user);
+    // Transform _id to id for frontend compatibility
+    const transformedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+
+    res.json(transformedUser);
   } catch (error) {
     console.error('Error fetching user:', error);
     res.status(500).json({ message: 'Error fetching user' });
@@ -89,7 +101,13 @@ router.patch('/:id/role', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ message: 'User role updated successfully', user });
+    // Transform _id to id for frontend compatibility
+    const transformedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+
+    res.json({ message: 'User role updated successfully', user: transformedUser });
   } catch (error) {
     console.error('Error updating user role:', error);
     res.status(500).json({ message: 'Error updating user role' });
@@ -117,9 +135,15 @@ router.patch('/:id/status', authenticateToken, requireAdmin, async (req, res) =>
       return res.status(404).json({ message: 'User not found' });
     }
 
+    // Transform _id to id for frontend compatibility
+    const transformedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+
     res.json({ 
       message: `User ${isActive ? 'activated' : 'deactivated'} successfully`, 
-      user 
+      user: transformedUser 
     });
   } catch (error) {
     console.error('Error updating user status:', error);
@@ -152,7 +176,13 @@ router.patch('/:id/profile', authenticateToken, async (req, res) => {
       return res.status(404).json({ message: 'User not found' });
     }
 
-    res.json({ message: 'Profile updated successfully', user });
+    // Transform _id to id for frontend compatibility
+    const transformedUser = {
+      ...user.toObject(),
+      id: user._id.toString()
+    };
+
+    res.json({ message: 'Profile updated successfully', user: transformedUser });
   } catch (error) {
     console.error('Error updating profile:', error);
     res.status(500).json({ message: 'Error updating profile' });

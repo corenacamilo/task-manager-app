@@ -44,9 +44,9 @@ export const authAPI = {
 export const usersAPI = {
   getUsers: (params?: any) => api.get('/users', { params }),
   getUserById: (id: string) => api.get(`/users/${id}`),
-  updateUserRole: (id: string, data: { role: string }) => api.put(`/users/${id}/role`, data),
-  updateUserStatus: (id: string, data: { isActive: boolean }) => api.put(`/users/${id}/status`, data),
-  updateProfile: (data: any) => api.put('/users/profile', data),
+  updateUserRole: (id: string, data: { role: string }) => api.patch(`/users/${id}/role`, data),
+  updateUserStatus: (id: string, data: { isActive: boolean }) => api.patch(`/users/${id}/status`, data),
+  updateProfile: (data: any) => api.patch('/users/profile', data),
   getUserStats: () => api.get('/users/stats')
 };
 
